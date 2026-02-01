@@ -324,9 +324,11 @@ rules:
 
 ## AgentSkills 集成
 
-本仓库提供三个 OpenClaw AgentSkills，用于构建完整的手机自动化闭环：
+本仓库提供多个 OpenClaw AgentSkills：手机自动化闭环 + macOS GUI 自动化。
 
 ### 技能列表
+
+#### 手机自动化（Android + AutoGLM）
 
 | 技能 | 作用 | 状态改变 | 说明 |
 |------|------|---------|------|
@@ -335,14 +337,24 @@ rules:
 | `phone-control` | 执行操作 | ✅ 改变 | 通过 AutoGLM 执行自然语言指令 |
 | `phone-loop` | 串行自动化闭环 | ✅ 改变 | 自动化执行 observe → plan → act → observe |
 
+#### macOS GUI 自动化（Peekaboo）
+
+| 技能 | 作用 | 技术栈 | 说明 |
+|------|------|--------|------|
+| `atlas-chatgpt-ui` | ChatGPT Atlas 自动化 | Peekaboo (macOS GUI) | 打开 ChatGPT Atlas、提问、读取回答 |
+
 ### 技能文件
 
 所有技能文件位于 `skills/` 目录：
 
+**手机自动化：**
 - `phone-observe.skill` - 观察技能
 - `phone-plan.skill` - 规划技能
 - `phone-control.skill` - 控制技能
 - `phone-loop.skill` - 闭环技能
+
+**macOS GUI 自动化：**
+- `atlas-chatgpt-ui.skill` - ChatGPT Atlas 自动化
 
 ### 安装技能
 
@@ -478,6 +490,29 @@ phone-observe → phone-plan → phone-control
 
 用户回复"确认"后继续执行。
 
+
+#### 示例 3：macOS GUI 自动化（atlas-chatgpt-ui）
+
+使用 Peekaboo 在 macOS 上操作 ChatGPT Atlas：
+
+```
+/atlas-chatgpt-ui 用一句话解释 ctx-size
+```
+
+**执行流程：**
+1. 打开 ChatGPT Atlas
+2. 检查登录状态 → 已登录
+3. 点击新对话
+4. 定位输入框 → ✅ 找到
+5. 输入："用一句话解释 ctx-size"
+6. 点击发送 → ✅ 成功
+7. 等待回答 → 5 秒完成
+8. 读取回答 → ✅ 成功
+
+**输出：**
+```
+ctx-size（上下文大小）是指语言模型在生成文本时能够参考的上下文窗口大小。
+```
 ### 技能文档
 
 每个技能的 `.skill` 文件包含完整的 SKILL.md 文档，详细说明使用方法、参数、示例等。
