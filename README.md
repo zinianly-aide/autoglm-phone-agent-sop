@@ -482,11 +482,22 @@ phone-observe → phone-plan → phone-control
 
 每个技能的 `.skill` 文件包含完整的 SKILL.md 文档，详细说明使用方法、参数、示例等。
 
-解压 `.skill` 文件（实为 zip 文件）可查看完整内容：
+**查看技能内容：**
+
+`.skill` 文件是 zip 格式，需要解压后查看：
 
 ```bash
-unzip -l phone-control.skill
+# 解压技能文件
+unzip phone-control.skill
+
+# 查看文档
+cat phone-control/SKILL.md
 ```
+
+**注意：**
+- 文件编码为 UTF-8，使用支持 UTF-8 的解压工具（如 macOS/Linux 的 `unzip`、Windows 的 7-Zip）
+- GitHub 无法直接预览 `.skill` 文件内容（二进制 zip 格式），需要下载后解压查看
+- OpenClaw 会自动加载 `.skill` 文件，无需手动解压
 
 ---
 
