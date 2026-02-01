@@ -322,6 +322,174 @@ rules:
 
 ---
 
+## AgentSkills 集成
+
+本仓库提供三个 OpenClaw AgentSkills，用于构建完整的手机自动化闭环：
+
+### 技能列表
+
+| 技能 | 作用 | 状态改变 | 说明 |
+|------|------|---------|------|
+| `phone-observe` | 观察屏幕状态 | ❌ 不改变 | 仅读取当前屏幕状态（弹窗、元素、文本） |
+| `phone-plan` | 规划下一步操作 | ❌ 不改变 | 根据目标和状态生成一条操作指令 |
+| `phone-control` | 执行操作 | ✅ 改变 | 通过 AutoGLM 执行自然语言指令 |
+| `phone-loop` | 串行自动化闭环 | ✅ 改变 | 自动化执行 observe → plan → act → observe |
+
+### 技能文件
+
+所有技能文件位于 `skills/` 目录：
+
+- `phone-observe.skill` - 观察技能
+- `phone-plan.skill` - 规划技能
+- `phone-control.skill` - 控制技能
+- `phone-loop.skill` - 闭环技能
+
+### 安装技能
+
+将 `.skill` 文件复制到 OpenClaw 的 skills 目录，重启 OpenClaw 即可加载。
+
+```bash
+# 复制技能到 OpenClaw
+cp skills/*.skill /opt/homebrew/lib/node_modules/openclaw/skills/public/
+
+# 重启 OpenClaw（如果需要）
+openclaw gateway restart
+```
+
+### 使用方式
+
+#### 1. 单步操作
+
+直接使用 `phone-control` 执行单个操作：
+
+```
+/phone-control 打开微信
+```
+
+#### 2. 规划与执行
+
+先观察，再规划，最后执行：
+
+```
+/phone-observe
+/phone-plan 给张三发消息 <观察结果JSON>
+/phone-control <规划结果>
+```
+
+#### 3. 自动化闭环
+
+使用 `phone-loop` 自动完成多步任务：
+
+```
+/phone-loop 目标：打开微信进入聊天列表；轮次：3
+```
+
+#### 4. JSON 输入（phone-loop）
+
+```json
+/phone-loop {
+  "goal": "在微信中搜索张三并打开聊天",
+  "max_rounds": 5,
+  "stop_keywords": ["与张三的聊天", "张三"]
+}
+```
+
+### 技能特性
+
+#### phone-observe
+- 获取当前屏幕状态（JSON 格式）
+- 包含 alerts（弹窗）、elements（元素）、texts_top（文本）
+- 不改变手机状态
+
+#### phone-plan
+- 根据目标 + 当前状态规划下一步操作
+- 仅输出一条指令（<30 汉字）
+- 敏感操作检测（发消息/支付/删除等）
+- 信息不足时要求再观察
+
+#### phone-control
+- 通过 AutoGLM 执行自然语言指令
+- 超时控制（默认 30 秒）
+- 错误处理与排错建议
+- 敏感操作需先确认
+
+#### phone-loop
+- 串行执行 observe → plan → act → observe
+- 自动判断任务达成
+- 最大轮次限制（默认 3）
+- 失败保护与排错建议
+- 支持敏感操作确认
+
+### 技能协作流程
+
+```
+用户目标
+  ↓
+phone-loop (协调者)
+  ↓
+phone-observe → phone-plan → phone-control
+  ↓
+达成？ → 否 → 继续
+  ↓ 是
+  完成
+```
+
+### 示例
+
+#### 示例 1：给张三发消息
+
+```
+/phone-loop 目标：在微信中搜索张三并发送消息"你好"；轮次：5
+```
+
+**执行流程：**
+1. observe: 桌面
+2. plan: 打开微信
+3. control: ✅ 打开微信
+4. observe: 微信首页
+5. plan: 点击搜索
+6. control: ✅ 点击搜索
+7. observe: 搜索页
+8. plan: 在搜索框输入 张三 并回车
+9. control: ✅ 在搜索框输入 张三 并回车
+10. observe: 搜索结果
+11. plan: 点击 张三
+12. control: ✅ 点击 张三
+13. observe: 聊天界面
+14. plan: [敏感操作] 需要确认
+15. 用户: 确认
+16. control: ✅ 在输入框输入 你好 并发送
+17. observe: 已发送
+18. ✅ 任务达成
+
+#### 示例 2：敏感操作确认
+
+```
+/phone-loop 目标：给张三发消息；轮次：5
+```
+
+当到达发送消息步骤时，会输出：
+
+```
+⚠️ 需要确认：是否发送消息给张三？（回复'确认'后继续执行）
+当前轮次: Round 5
+待执行指令: 在输入框输入 你好 并发送
+```
+
+用户回复"确认"后继续执行。
+
+### 技能文档
+
+每个技能的 `.skill` 文件包含完整的 SKILL.md 文档，详细说明使用方法、参数、示例等。
+
+解压 `.skill` 文件（实为 zip 文件）可查看完整内容：
+
+```bash
+unzip -l phone-control.skill
+```
+
+---
+
 ## 常见问题排查
 
 ### 1. llama-server 启动失败
