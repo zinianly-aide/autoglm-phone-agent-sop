@@ -341,7 +341,7 @@ rules:
 
 | 技能 | 作用 | 技术栈 | 说明 |
 |------|------|--------|------|
-| `atlas-chatgpt-ui` | ChatGPT Atlas 自动化 | Peekaboo (macOS GUI) | 打开 ChatGPT Atlas、提问、读取回答 |
+| `atlas-chatgpt-ui` | ChatGPT Atlas 自动化 | Peekaboo (macOS GUI) | 编排器：调用 /peekaboo 完成打开、提问、读取回答的完整流程 |
 
 ### 技能文件
 
@@ -432,6 +432,44 @@ openclaw gateway restart
 - 失败保护与排错建议
 - 支持敏感操作确认
 
+#### atlas-chatgpt-ui
+- 编排者：调用 /peekaboo 完成所有 UI 操作
+- 不直接做任何 UI 自动化细节
+- 安全合规：不绕过登录、不记录敏感数据
+- 完整流程：打开 → 登录检查 → 提问 → 读取回答
+
+### 调用模式
+
+#### 手机自动化：phone-loop 协调者
+
+```
+/phone-loop 用户目标
+  ↓
+  编排以下步骤：
+  - /phone-observe
+  - /phone-plan
+  - /phone-control
+  ↓
+  返回结果
+```
+
+#### macOS GUI 自动化：atlas-chatgpt-ui 编排者
+
+```
+/atlas-chatgpt-ui 用户问题
+  ↓
+  编排以下步骤：
+  - /peekaboo 打开应用 "ChatGPT Atlas"
+  - /peekaboo 检查登录状态
+  - /peekaboo 点击新对话
+  - /peekaboo 输入问题
+  - /peekaboo 点击发送
+  - /peekaboo 等待回答
+  - /peekaboo 提取回答
+  ↓
+  返回回答正文
+```
+
 ### 技能协作流程
 
 ```
@@ -491,7 +529,7 @@ phone-observe → phone-plan → phone-control
 用户回复"确认"后继续执行。
 
 
-#### 示例 3：macOS GUI 自动化（atlas-chatgpt-ui）
+#### 示例 3：macOS GUI 自动化（atlas-chatgpt-ui）- 示例 1
 
 使用 Peekaboo 在 macOS 上操作 ChatGPT Atlas：
 
@@ -500,18 +538,45 @@ phone-observe → phone-plan → phone-control
 ```
 
 **执行流程：**
-1. 打开 ChatGPT Atlas
-2. 检查登录状态 → 已登录
-3. 点击新对话
-4. 定位输入框 → ✅ 找到
-5. 输入："用一句话解释 ctx-size"
-6. 点击发送 → ✅ 成功
-7. 等待回答 → 5 秒完成
-8. 读取回答 → ✅ 成功
+1. /peekaboo 打开应用 "ChatGPT Atlas"
+2. /peekaboo 检查登录状态 → 已登录
+3. /peekaboo 点击新对话
+4. /peekaboo 定位输入框 → ✅ 找到
+5. /peekaboo 输入："用一句话解释 ctx-size"
+6. /peekaboo 点击发送 → ✅ 成功
+7. /peekaboo 等待回答 → 5 秒完成
+8. /peekaboo 读取回答 → ✅ 成功
 
 **输出：**
 ```
 ctx-size（上下文大小）是指语言模型在生成文本时能够参考的上下文窗口大小。
+```
+
+#### 示例 4：macOS GUI 自动化（atlas-chatgpt-ui）- 示例 2
+
+使用 Peekaboo 在 macOS 上操作 ChatGPT Atlas：
+
+```
+/atlas-chatgpt-ui 总结 phi-3-vision 在手机 UI 观察中的优势
+```
+
+**执行流程：**
+1. /peekaboo 打开应用 "ChatGPT Atlas"
+2. /peekaboo 检查登录状态 → 已登录
+3. /peekaboo 点击新对话
+4. /peekaboo 定位输入框 → ✅ 找到
+5. /peekaboo 输入："总结 phi-3-vision 在手机 UI 观察中的优势"
+6. /peekaboo 点击发送 → ✅ 成功
+7. /peekaboo 等待回答 → 8 秒完成
+8. /peekaboo 读取回答 → ✅ 成功
+
+**输出：**
+```
+Phi-3-Vision 在手机 UI 观察中的优势包括：
+1. 轻量级设计
+2. 快速推理
+3. 多模态理解
+...
 ```
 ### 技能文档
 
